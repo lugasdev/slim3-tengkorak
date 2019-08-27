@@ -32,26 +32,7 @@ $capsule->addConnection(
     ),
     "default"
 );
-$capsule->addConnection(
-    array(
-        'driver'   => $_ENV["DB_DUA_CONNECTION"],
-        'host'     => $_ENV["DB_DUA_HOST"],
-        'database' => $_ENV["DB_DUA_DATABASE"],
-        'username' => $_ENV["DB_DUA_USERNAME"],
-        'password' => $_ENV["DB_DUA_PASSWORD"],
-        'port'     => $_ENV["DB_DUA_PORT"],
-        'prefix'   => $_ENV["DB_DUA_PREFIX"],
-        'read' => [
-            'host' => $_ENV["DB_DUA_HOST"]
-        ],
-        'write' => [
-            'host' => $_ENV["DB_DUA_HOST"]
-        ],
-        'charset'   => 'utf8',
-        'collation' => 'utf8_unicode_ci',
-    ),
-    "simdiklat"
-);
+
 $capsule->setAsGlobal();
 $capsule->bootEloquent();
 

@@ -13,7 +13,7 @@ class HomeController extends Controller
    public function home($req, $res, $args) {
         // your code
         // to access items in the container... $this->container->get('');
-        return $this->view("cek.twig");
+        return $this->view("welcome.twig");
    }
 
    public function contact($req, $res, $args) {

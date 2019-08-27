@@ -37,13 +37,6 @@ class MyTwig extends \MyApp
     {
         $this->twig->addGlobal('base_url', $_ENV["APP_URL"]);
 
-        $diklat = \Models\Diklat::get();
-        $diklat = (!empty($diklat)) ? $diklat->toArray() : array();
-        $this->twig->addGlobal('diklat_reg', $diklat);
-
-        $default_diklat = $this->session_->get('default_diklat');
-        $this->twig->addGlobal('default_diklat', $default_diklat);
-
         $function = new \Twig\TwigFunction('function_name', function () {
             return "apa";
         });
