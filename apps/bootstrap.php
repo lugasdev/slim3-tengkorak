@@ -1,44 +1,51 @@
 <?php
+// Set timezone
+date_default_timezone_set('Asia/Jakarta');
+
 require 'vendor/autoload.php';
 
 use \Psr\Http\Message\ServerRequestInterface as Request;
 use \Psr\Http\Message\ResponseInterface as Response;
-use Illuminate\Database\Capsule\Manager as Capsule;
 
-$dotenv = Dotenv\Dotenv::create(__DIR__);
-$dotenv->load();
-
-$capsule = new Capsule;
-$capsule->addConnection(array(
-    'driver'    => $_ENV["DB_CONNECTION"],
-    'host'      => $_ENV["DB_HOST"],
-    'database'  => $_ENV["DB_DATABASE"],
-    'username'  => $_ENV["DB_USERNAME"],
-    'password'  => $_ENV["DB_PASSWORD"],
-    'port'      => $_ENV["DB_PORT"],
-));
-$capsule->setAsGlobal();
-$capsule->bootEloquent();
+include 'configuration.php';
 
 $config = require APP_DIR . '/src/settings.php';
-$app = new \Slim\App(['settings' => $config]);
+
+$myApp = new \MyApp;
+$app   = $myApp->SlimApp(['settings' => $config]);
 
 $container = $app->getContainer();
 
-// $container['errorHandler'] = function ($container) {
-//     return function ($req, $res, $exception) use ($container) {
+$app->add(new \Slim\Middleware\Session([
+    'name'        => md5( $_ENV["APP_NAME"] . "SESSION" ),
+    'autorefresh' => true,
+    'lifetime'    => '3 hour'
+]));
 
-//         $err = [
-//             "type"    => get_class($exception),
-//             "message" => $exception->getMessage(),
-//             "code"    => !empty($exception->getCode()) ? $exception->getCode() : 500
-//         ];
+$container['errorHandler'] = function ($container) {
+    return function ($req, $res, $exception) use ($container) {
 
-//         return $res->withStatus( $err["code"] )
-//             ->withHeader('Content-Type', 'application/json')
-//             ->write( json_encode($err) );
-//     };
-// };
+        $err = [
+            "status"  => 'error',
+            "type"    => get_class($exception),
+            "message" => $exception->getMessage(),
+            "code"    => !empty($exception->getCode()) ? (is_numeric($exception->getCode())) ? $exception->getCode() : 500 : 500
+        ];
+
+        if (strpos(get_class($exception), 'Illuminate\Database') !== false) {
+            $err['code'] = 500;
+            $err['message'] = 'Database Error';
+        }
+        if (strpos(get_class($exception), 'Illuminate\\Database') !== false) {
+            $err['code'] = 500;
+            $err['message'] = 'Database Error';
+        }
+
+        return $res->withStatus( $err["code"] )
+            ->withHeader('Content-Type', 'application/json')
+            ->write( json_encode($err) );
+    };
+};
 
 $container['view'] = function ($container) {
     $con = new \Controllers\Controller;
@@ -51,6 +58,10 @@ $container['logger'] = function($c) {
     $file_handler = new \Monolog\Handler\StreamHandler( APP_DIR . '/cache/app.log');
     $logger->pushHandler($file_handler);
     return $logger;
+};
+
+$container['session'] = function ($c) {
+    return new \SlimSession\Helper;
 };
 
 include APP_DIR . "/src/middlewares.php";
